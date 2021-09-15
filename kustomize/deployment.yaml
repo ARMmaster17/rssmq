@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rssmq
+spec:
+  selector:
+    matchLabels:
+      app: rssmq
+  template:
+    metadata:
+#      annotations:
+#        prometheus.io/scrape: "true"
+#        prometheus.io/port: "9797"
+      labels:
+        app: rssmq
+    spec:
+      containers:
+        - name: rssmq
+          image: ghcr.io/ARMmaster17/rssmq:latest
+          imagePullPolicy: IfNotPresent
