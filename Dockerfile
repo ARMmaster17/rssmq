@@ -1,6 +1,8 @@
 FROM golang:1.17-alpine
 RUN mkdir /src
-ADD ./* /src
+COPY ./ /src/
 WORKDIR /src
+RUN ls -al
 RUN go build ./cmd/main.go
-CMD /src/cmd/main
+RUN ls -al
+CMD /src/main
