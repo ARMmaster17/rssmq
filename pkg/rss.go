@@ -17,15 +17,15 @@ func getFeed(url string) (*gofeed.Feed, error) {
 	return feed, nil
 }
 
-func getFeedSources() ([]FeedSource, error) {
+func getFeedSources() ([]FeedSource, *gorm.DB, error) {
 	db, err := gorm.Open(postgres.Open(os.Getenv("RSSMQ_DB")))
 	if err != nil {
-		return nil, fmt.Errorf("unable to connect to DB: %w", err)
+		return nil, nil, fmt.Errorf("unable to connect to DB: %w", err)
 	}
 	var feedSources []FeedSource
 	result := db.Find(&feedSources)
 	if result.Error != nil {
-		return nil, fmt.Errorf("unable to get feed sources: %w", err)
+		return nil, nil, fmt.Errorf("unable to get feed sources: %w", err)
 	}
-	return feedSources, nil
+	return feedSources, db, nil
 }

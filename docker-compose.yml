@@ -1,0 +1,31 @@
+version: '3.3'
+services:
+  postgres:
+    image: 'postgres:latest'
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: rssmq
+    ports:
+      - 5432:5432
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: 'rabbitmq'
+    ports:
+      - 5672:5672
+      - 15672:15672
+  rssmq:
+    build: .
+    environment:
+      RSSMQ_DB: "host=postgres user=postgres password=password dbname=rssmq port=5432 sslmode=disable"
+      RSSMQ_MQ_URL: "amqp://guest:guest@rabbitmq:5672"
+      RSSMQ_MQ_QUEUE: "rssmq"
+    depends_on:
+      - postgres
+      - rabbitmq
+    restart: always
+  adminer:
+    image: adminer:latest
+    restart: always
+    ports:
+      - 8080:8080
