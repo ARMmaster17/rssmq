@@ -3,12 +3,28 @@ package pkg
 import (
 	"fmt"
 	"github.com/streadway/amqp"
+	"os"
 )
 
-func connect(uri string) (*amqp.Connection, error) {
-	conn, err := amqp.Dial(uri)
+func getAMQPChannel() (*amqp.Connection, *amqp.Channel, error) {
+	conn, err := amqp.Dial(os.Getenv("RSSMQ_MQ_URL"))
 	if err != nil {
-		return nil, fmt.Errorf("unable to connect to RabbitMQ: %w", err)
+		return nil, nil, fmt.Errorf("unable to dial RabbitMQ: %w", err)
 	}
-	return conn, nil
+	ch, err := conn.Channel()
+	if err != nil {
+		return nil, nil, fmt.Errorf("unable to establish MQ channel: %w", err)
+	}
+	_, err = ch.QueueDeclare(
+		os.Getenv("RSSMQ_MQ_QUEUE"),
+		false,
+		false,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		return nil, nil, fmt.Errorf("unable to establish MQ queue: %w", err)
+	}
+	return conn, ch, nil
 }
