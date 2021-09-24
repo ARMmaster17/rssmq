@@ -29,7 +29,7 @@ func main() {
 	s.Every(1).Minutes().Do(pkg.HandleCheckInterval)
 	log.Info().Msg("starting check scheduler")
 	s.StartAsync()
-
+	log.Info().Msg("Setting up prometheus")
 	err = prometheus.Register(pkg.TotalChecks)
 	if err != nil {
 		log.Fatal().Err(err).Msg("unable to initialize metrics")
@@ -40,15 +40,8 @@ func main() {
 	}
 
 	r := mux.NewRouter()
-	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./static/")))
-	r.Path("/prometheus").Handler(promhttp.Handler())
-	srv := &http.Server{
-		Addr:              ":8080",
-		Handler:           r,
-		TLSConfig:         nil,
-		ReadTimeout:       15,
-		WriteTimeout:      15,
-	}
-
-	log.Fatal().Err(srv.ListenAndServe())
+	r.Path("/").Handler(http.FileServer(http.Dir("./static/")))
+	r.Path("/metrics").Handler(promhttp.Handler())
+	log.Info().Msg("API is available on port 8080")
+	log.Fatal().Err(http.ListenAndServe(":8080", r)).Msg("server failed")
 }

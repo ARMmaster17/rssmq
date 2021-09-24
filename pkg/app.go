@@ -11,12 +11,11 @@ import (
 
 // TODO: Store DB/AMQP connections at global static level.
 
-var TotalChecks = prometheus.NewCounterVec(
+var TotalChecks = prometheus.NewCounter(
 	prometheus.CounterOpts{
 		Name: "rss_checks_total",
 		Help: "Number of RSS feed checks",
 	},
-	[]string{"url"},
 )
 
 var NewItems = prometheus.NewCounterVec(
@@ -42,7 +41,7 @@ func HandleCheckInterval() {
 	defer ch.Close()
 	// Pull items from each feed
 	for _, source := range sources {
-		TotalChecks.WithLabelValues(source.Url).Inc()
+		TotalChecks.Inc()
 		feed, err := getFeed(source.Url)
 		if err != nil {
 			fmt.Printf("unable to read feed: %w", err)
