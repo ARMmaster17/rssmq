@@ -2,14 +2,30 @@ package pkg
 
 import (
 	"fmt"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
 	"github.com/streadway/amqp"
 	"os"
 	"time"
 )
 
-// TODO: Zerolog
 // TODO: Store DB/AMQP connections at global static level.
+
+var TotalChecks = prometheus.NewCounterVec(
+	prometheus.CounterOpts{
+		Name: "rss_checks_total",
+		Help: "Number of RSS feed checks",
+	},
+	[]string{"url"},
+)
+
+var NewItems = prometheus.NewCounterVec(
+	prometheus.CounterOpts{
+		Name: "rss_new_items_total",
+		Help: "Number of new RSS items found",
+	},
+	[]string{"url"},
+)
 
 func HandleCheckInterval() {
 	log.Debug().Msg("check cycle started")
@@ -26,6 +42,7 @@ func HandleCheckInterval() {
 	defer ch.Close()
 	// Pull items from each feed
 	for _, source := range sources {
+		TotalChecks.WithLabelValues(source.Url).Inc()
 		feed, err := getFeed(source.Url)
 		if err != nil {
 			fmt.Printf("unable to read feed: %w", err)
@@ -36,6 +53,7 @@ func HandleCheckInterval() {
 		// Send items to MQ
 		for _, item := range feed.Items {
 			if item.PublishedParsed.After(source.LastChecked) {
+				NewItems.WithLabelValues(source.Url).Inc()
 				err = ch.Publish(
 					"",
 					os.Getenv("RSSMQ_MQ_QUEUE"),
