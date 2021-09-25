@@ -8,7 +8,7 @@ import (
 )
 
 func GetDB() (*gorm.DB, error) {
-	db, err := gorm.Open(postgres.Open(fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=5432 sslmode=disable",
+	db, err := gorm.Open(postgres.Open(fmt.Sprintf("host=%s user=%s password=\"%s\" dbname=%s port=5432 sslmode=disable",
 		os.Getenv("RSSMQ_DB_HOST"),
 		os.Getenv("RSSMQ_DB_USER"),
 		os.Getenv("RSSMQ_DB_PASSWORD"),
