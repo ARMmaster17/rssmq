@@ -6,8 +6,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog/log"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 	"net/http"
 	"os"
 	"rssmq/pkg"
@@ -16,8 +14,8 @@ import (
 
 func main() {
 	log.Info().Msg("rssmq starting up")
-	log.Info().Msg("connecting to database using RSSMQ_DB")
-	db, err := gorm.Open(postgres.Open(os.Getenv("RSSMQ_DB")))
+	log.Info().Msg("connecting to database using RSSMQ_DB_*")
+	db, err := pkg.GetDB()
 	if err != nil {
 		log.Fatal().Err(err).Str("ENV:RSSMQ_DB", os.Getenv("RSSMQ_DB")).Msg("unable to connect to database")
 	}
