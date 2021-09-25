@@ -2,7 +2,6 @@ package pkg
 
 import (
 	"fmt"
-	"database/sql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"os"
