@@ -36,15 +36,10 @@ jobs:
         uses: docker/metadata-action@09dffb9c1c47d41d5fd15d675fa8b10b8918da82
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          
-      - name: Set output
-        id: vars
-        run: echo ::set-output name=short_ref::${GITHUB_REF#refs/*/}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@04d5124fcbe023bf2106e1fea7c1b30717c7fc32
         with:
           context: .
           push: true
-          tags: ${{ steps.meta.outputs.tags }}-${{ steps.vars.outputs.short_ref }}-${{ github.sha }}}
           labels: ${{ steps.meta.outputs.labels }}
