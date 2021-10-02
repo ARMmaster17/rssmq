@@ -42,7 +42,7 @@ jobs:
         run: echo "::set-output name=date::$(date +%s)"
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@04d5124fcbe023bf2106e1fea7c1b30717c7fc32
+        uses: docker/build-push-action@2cf7b61533841e8060e0e6daac0b57b240fd955b
         with:
           context: .
           push: true
