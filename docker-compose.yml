@@ -17,7 +17,10 @@ services:
   rssmq:
     build: .
     environment:
-      RSSMQ_DB: "host=postgres user=postgres password=password dbname=rssmq port=5432 sslmode=disable"
+      RSSMQ_DB_USER: "postgres"
+      RSSMQ_DB_PASSWORD: "password"
+      RSSMQ_DB_HOST: "postgres"
+      RSSMQ_DB_DATABASE: "rssmq"
       RSSMQ_MQ_URL: "amqp://guest:guest@rabbitmq:5672"
       RSSMQ_MQ_QUEUE: "rssmq"
     depends_on:

@@ -15,16 +15,18 @@ import (
 func main() {
 	log.Info().Msg("rssmq starting up")
 	log.Info().Msg("connecting to database using RSSMQ_DB_*")
-	db, err := pkg.GetDB()
+	app := pkg.App{}
+	var err error
+	app.DB, err = pkg.GetDB()
 	if err != nil {
 		log.Fatal().Err(err).Str("ENV:RSSMQ_DB", os.Getenv("RSSMQ_DB")).Msg("unable to connect to database")
 	}
-	err = db.AutoMigrate(&pkg.FeedSource{})
+	err = app.DB.AutoMigrate(&pkg.FeedSource{})
 	if err != nil {
 		log.Fatal().Err(err).Str("ENV:RSSMQ_DB", os.Getenv("RSSMQ_DB")).Msg("unable to migrate database")
 	}
 	s := gocron.NewScheduler(time.UTC)
-	s.Every(1).Minutes().Do(pkg.HandleCheckInterval)
+	s.Every(1).Minutes().Do(app.HandleCheckInterval)
 	log.Info().Msg("starting check scheduler")
 	s.StartAsync()
 	log.Info().Msg("Setting up prometheus")
@@ -37,9 +39,12 @@ func main() {
 		log.Fatal().Err(err).Msg("unable to initialize metrics")
 	}
 
-	r := mux.NewRouter()
-	r.Path("/").Handler(http.FileServer(http.Dir("./static/")))
-	r.Path("/metrics").Handler(promhttp.Handler())
+	app.Router = mux.NewRouter()
+	app.Router.Path("/metrics").Handler(promhttp.Handler())
+	app.Router.HandleFunc("/api/feeds", app.HandleGetFeeds).Methods("GET")
+	app.Router.HandleFunc("/api/feed/new", app.HandleCreateFeed).Methods("POST")
+	app.Router.HandleFunc("/api/feed/{id:[0-9]+}/delete", app.HandleDeleteFeed).Methods("POST")
+	app.Router.PathPrefix("/").Handler(http.FileServer(http.Dir("./dist/")))
 	log.Info().Msg("API is available on port 8080")
-	log.Fatal().Err(http.ListenAndServe(":8080", r)).Msg("server failed")
+	log.Fatal().Err(http.ListenAndServe(":8080", app.Router)).Msg("server failed")
 }
