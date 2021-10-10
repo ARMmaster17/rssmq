@@ -35,6 +35,10 @@ jobs:
           RSSMQ_DB_PASSWORD: postgres_password
           RSSMQ_DB_DATABASE: postgres_db
           RSSMQ_DB_HOST: localhost
+      - name: Cypress run
+        uses: cypress-io/github-action@v2
+        with:
+          command: yarn cypress run-ct
       - name: Publish unit test results
         uses: EnricoMi/publish-unit-test-result-action@v1
         if: always()
