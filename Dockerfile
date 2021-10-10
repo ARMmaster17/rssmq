@@ -3,7 +3,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN yarn install
 COPY ./rss-frontend/ .
-RUN yarn install @vue/cli-service -g
+RUN yarn global add @vue/cli-service
 RUN yarn run build
 
 FROM golang:1.17-alpine as go-build-stage
