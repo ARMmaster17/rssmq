@@ -11,5 +11,5 @@ require (
 	github.com/rs/zerolog v1.25.0
 	github.com/streadway/amqp v1.0.0
 	gorm.io/driver/postgres v1.1.2
-	gorm.io/gorm v1.21.15
+	gorm.io/gorm v1.21.16
 )
