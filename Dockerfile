@@ -1,8 +1,20 @@
-FROM golang:1.17-alpine
+FROM node:latest as js-build-stage
+WORKDIR /app
+COPY package*.json ./
+RUN yarn install
+COPY ./rss-frontend/ .
+RUN yarn run build
+
+FROM golang:1.17-alpine as go-build-stage
 RUN mkdir /src
 COPY ./ /src/
 WORKDIR /src
-RUN ls -al
 RUN go build ./cmd/main.go
-RUN ls -al
-CMD /src/main
+
+FROM alpine:3.14.2 as final-stage
+RUN mkdir /app
+WORKDIR /app
+COPY --from=go-build-stage /src/main /app/main
+RUN mkdir /app/dist
+COPY --from=js-build-stage /app/dist /app/dist
+CMD /app/main

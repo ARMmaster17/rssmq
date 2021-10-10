@@ -1,15 +1,25 @@
 package pkg
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
 	"github.com/streadway/amqp"
+	"gorm.io/gorm"
+	"net/http"
 	"os"
+	"strconv"
 	"time"
 )
 
 // TODO: Store DB/AMQP connections at global static level.
+
+type App struct {
+	DB *gorm.DB
+	Router *mux.Router
+}
 
 var TotalChecks = prometheus.NewCounter(
 	prometheus.CounterOpts{
@@ -26,10 +36,10 @@ var NewItems = prometheus.NewCounterVec(
 	[]string{"url"},
 )
 
-func HandleCheckInterval() {
+func (a *App) HandleCheckInterval() {
 	log.Debug().Msg("check cycle started")
 	// Get feeds from DB
-	sources, db, err := getFeedSources()
+	sources, err := getFeedSources(a.DB)
 	if err != nil {
 		log.Error().Err(err).Msg("unable to get feed sources")
 		return
@@ -69,6 +79,67 @@ func HandleCheckInterval() {
 			}
 		}
 		source.LastChecked = checkTime
-		db.Save(&source)
+		a.DB.Save(&source)
+	}
+}
+
+func (a *App) respondWithError(w http.ResponseWriter) {
+	a.respondWithErrorMessage(w, "Internal server error")
+}
+
+func (a *App) respondWithErrorMessage(w http.ResponseWriter, message string) {
+	a.respondWithJSON(w, http.StatusInternalServerError, map[string]string{"error": message})
+}
+
+func (a *App) respondOKWithJSON(w http.ResponseWriter, payload interface{}) {
+	a.respondWithJSON(w, http.StatusOK, payload)
+}
+
+func (a *App) respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
+	response, _ := json.Marshal(payload)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	_, _ = w.Write(response)
+}
+
+func (a *App) HandleGetFeeds(w http.ResponseWriter, r *http.Request) {
+	var feeds []FeedSource
+	result := a.DB.Find(&feeds)
+	if result.Error != nil {
+		log.Error().Stack().Err(result.Error).Msgf("unable to process request %s", r.RequestURI)
+		a.respondWithErrorMessage(w, result.Error.Error())
+		return
+	}
+	a.respondOKWithJSON(w, feeds)
+}
+
+func (a *App) HandleCreateFeed(w http.ResponseWriter, r *http.Request) {
+	var feed FeedSource
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&feed); err != nil {
+		a.respondWithErrorMessage(w, err.Error())
+		return
+	}
+	result := a.DB.Create(&feed)
+	if result.Error != nil {
+		log.Error().Stack().Err(result.Error).Msgf("unable to process request %s", r.RequestURI)
+		a.respondWithErrorMessage(w, result.Error.Error())
+		return
+	}
+	a.respondOKWithJSON(w, nil)
+}
+
+func (a *App) HandleDeleteFeed(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	fsId, err := strconv.ParseFloat(vars["id"], 64)
+	if err != nil {
+		a.respondWithErrorMessage(w, err.Error())
+		return
+	}
+	result := a.DB.Delete(&FeedSource{}, fsId)
+	if result.Error != nil {
+		log.Error().Stack().Err(result.Error).Msgf("unable to process request %s", r.RequestURI)
+		a.respondWithErrorMessage(w, result.Error.Error())
+		return
 	}
 }
