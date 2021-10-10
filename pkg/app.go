@@ -10,6 +10,7 @@ import (
 	"gorm.io/gorm"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -129,5 +130,16 @@ func (a *App) HandleCreateFeed(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) HandleDeleteFeed(w http.ResponseWriter, r *http.Request) {
-
+	vars := mux.Vars(r)
+	fsId, err := strconv.ParseFloat(vars["id"], 64)
+	if err != nil {
+		a.respondWithErrorMessage(w, err.Error())
+		return
+	}
+	result := a.DB.Delete(&FeedSource{}, fsId)
+	if result.Error != nil {
+		log.Error().Stack().Err(result.Error).Msgf("unable to process request %s", r.RequestURI)
+		a.respondWithErrorMessage(w, result.Error.Error())
+		return
+	}
 }
