@@ -1,0 +1,43 @@
+name: Run tests
+
+on: [push, pull_request]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_DB: postgres_db
+          POSTGRES_PASSWORD: postgres_password
+          POSTGRES_USER: postgres_user
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+      - name: Go test
+        run: make test-go
+        env:
+          RSSMQ_DB_USER: postgres_user
+          RSSMQ_DB_PASSWORD: postgres_password
+          RSSMQ_DB_DATABASE: postgres_db
+          RSSMQ_DB_HOST: localhost
+      - name: Publish unit test results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: always()
+        with:
+          files: ./*/report.xml
+          report_individual_runs: "true"

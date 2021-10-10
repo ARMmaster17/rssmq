@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/mmcdole/gofeed"
 	"gorm.io/gorm"
+	"time"
 )
 
 func getFeed(url string) (*gofeed.Feed, error) {
@@ -23,4 +24,8 @@ func getFeedSources(db *gorm.DB) ([]FeedSource, error) {
 		return nil, fmt.Errorf("unable to get feed sources: %w", result.Error)
 	}
 	return feedSources, nil
+}
+
+func feedItemIsNew(lastCheckTime time.Time, item *gofeed.Item) bool {
+	return item.PublishedParsed.After(lastCheckTime)
 }

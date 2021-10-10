@@ -10,6 +10,7 @@ require (
 	github.com/prometheus/client_golang v1.11.0
 	github.com/rs/zerolog v1.25.0
 	github.com/streadway/amqp v1.0.0
+	github.com/stretchr/testify v1.7.0 // indirect
 	gorm.io/driver/postgres v1.1.2
 	gorm.io/gorm v1.21.16
 )
