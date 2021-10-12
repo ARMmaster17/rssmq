@@ -1,9 +1,9 @@
 FROM node:latest as js-build-stage
 WORKDIR /app
-COPY package*.json ./
+COPY ./rss-frontend/package.json ./
+COPY ./rss-frontend/yarn.lock ./
 RUN yarn install
 COPY ./rss-frontend/ .
-RUN yarn global add @vue/cli-service
 RUN yarn run build
 
 FROM golang:1.17-alpine as go-build-stage
