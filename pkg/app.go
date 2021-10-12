@@ -1,40 +1,44 @@
 package pkg
 
 import (
-	"encoding/json"
 	"fmt"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
 	"github.com/streadway/amqp"
 	"gorm.io/gorm"
 	"net/http"
 	"os"
-	"strconv"
 	"time"
 )
-
-// TODO: Store DB/AMQP connections at global static level.
 
 type App struct {
 	DB *gorm.DB
 	Router *mux.Router
+	CORS []handlers.CORSOption
 }
 
-var TotalChecks = prometheus.NewCounter(
-	prometheus.CounterOpts{
-		Name: "rss_checks_total",
-		Help: "Number of RSS feed checks",
-	},
-)
+func (a *App) Init() error {
+	var err error
+	a.DB, err = GetDB()
+	if err != nil {
+		return err
+	}
+	err = a.DB.AutoMigrate(&FeedSource{})
+	if err != nil {
+		return err
+	}
 
-var NewItems = prometheus.NewCounterVec(
-	prometheus.CounterOpts{
-		Name: "rss_new_items_total",
-		Help: "Number of new RSS items found",
-	},
-	[]string{"url"},
-)
+	err = a.registerHTTPRoutes()
+	if err != nil {
+		log.Fatal().Err(err).Msg("unable to initialize HTTP server")
+	}
+	return nil
+}
+
+func (a *App) StartAPIBlocking() error {
+	return http.ListenAndServe(":8080", handlers.CORS(a.CORS...)(a.Router))
+}
 
 func (a *App) HandleCheckInterval() {
 	log.Debug().Msg("check cycle started")
@@ -54,14 +58,14 @@ func (a *App) HandleCheckInterval() {
 		TotalChecks.Inc()
 		feed, err := getFeed(source.Url)
 		if err != nil {
-			fmt.Printf("unable to read feed: %w", err)
+			fmt.Printf("unable to read feed: %s", err.Error())
 			log.Error().Err(err).Str("source", source.Url).Msg("unable to read feed")
 			return
 		}
 		checkTime := time.Now()
 		// Send items to MQ
 		for _, item := range feed.Items {
-			if item.PublishedParsed.After(source.LastChecked) {
+			if feedItemIsNew(source.LastChecked, item) {
 				NewItems.WithLabelValues(source.Url).Inc()
 				err = ch.Publish(
 					"",
@@ -74,72 +78,11 @@ func (a *App) HandleCheckInterval() {
 					},
 				)
 				if err != nil {
-					fmt.Printf("unable to send queue message for %s: %w", item.Link, err)
+					fmt.Printf("unable to send queue message for %s: %s", item.Link, err.Error())
 				}
 			}
 		}
 		source.LastChecked = checkTime
 		a.DB.Save(&source)
-	}
-}
-
-func (a *App) respondWithError(w http.ResponseWriter) {
-	a.respondWithErrorMessage(w, "Internal server error")
-}
-
-func (a *App) respondWithErrorMessage(w http.ResponseWriter, message string) {
-	a.respondWithJSON(w, http.StatusInternalServerError, map[string]string{"error": message})
-}
-
-func (a *App) respondOKWithJSON(w http.ResponseWriter, payload interface{}) {
-	a.respondWithJSON(w, http.StatusOK, payload)
-}
-
-func (a *App) respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
-	response, _ := json.Marshal(payload)
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
-	_, _ = w.Write(response)
-}
-
-func (a *App) HandleGetFeeds(w http.ResponseWriter, r *http.Request) {
-	var feeds []FeedSource
-	result := a.DB.Find(&feeds)
-	if result.Error != nil {
-		log.Error().Stack().Err(result.Error).Msgf("unable to process request %s", r.RequestURI)
-		a.respondWithErrorMessage(w, result.Error.Error())
-		return
-	}
-	a.respondOKWithJSON(w, feeds)
-}
-
-func (a *App) HandleCreateFeed(w http.ResponseWriter, r *http.Request) {
-	var feed FeedSource
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&feed); err != nil {
-		a.respondWithErrorMessage(w, err.Error())
-		return
-	}
-	result := a.DB.Create(&feed)
-	if result.Error != nil {
-		log.Error().Stack().Err(result.Error).Msgf("unable to process request %s", r.RequestURI)
-		a.respondWithErrorMessage(w, result.Error.Error())
-		return
-	}
-	a.respondOKWithJSON(w, nil)
-}
-
-func (a *App) HandleDeleteFeed(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	fsId, err := strconv.ParseFloat(vars["id"], 64)
-	if err != nil {
-		a.respondWithErrorMessage(w, err.Error())
-		return
-	}
-	result := a.DB.Delete(&FeedSource{}, fsId)
-	if result.Error != nil {
-		log.Error().Stack().Err(result.Error).Msgf("unable to process request %s", r.RequestURI)
-		a.respondWithErrorMessage(w, result.Error.Error())
-		return
 	}
 }
