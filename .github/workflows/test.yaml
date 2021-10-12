@@ -39,7 +39,6 @@ jobs:
         uses: cypress-io/github-action@v2
         with:
           install-command: yarn install
-          bulid: yarn build
           command: yarn cypress run-ct
           working-directory: rss-frontend
       - name: Publish unit test results
