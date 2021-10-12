@@ -39,10 +39,12 @@ jobs:
         uses: cypress-io/github-action@v2
         with:
           install-command: yarn install
+          bulid: yarn build
           command: yarn cypress run-ct
+          working-directory: rss-frontend
       - name: Publish unit test results
         uses: EnricoMi/publish-unit-test-result-action@v1
         if: always()
         with:
-          files: ./*/report.xml
+          files: ./junit/*-report.xml
           report_individual_runs: "true"
