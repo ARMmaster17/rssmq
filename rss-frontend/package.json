@@ -16,7 +16,7 @@
     "core-js": "3.18.3",
     "eslint-plugin-cypress": "2.12.1",
     "html-webpack-plugin": "4.5.2",
-    "postcss": "8.3.9",
+    "postcss": "8.3.10",
     "tailwindcss": "npm:@tailwindcss/postcss7-compat",
     "vue": "2.6.14"
   },
