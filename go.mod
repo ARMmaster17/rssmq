@@ -12,5 +12,5 @@ require (
 	github.com/streadway/amqp v1.0.0
 	github.com/stretchr/testify v1.7.0 // indirect
 	gorm.io/driver/postgres v1.2.0
-	gorm.io/gorm v1.21.16
+	gorm.io/gorm v1.22.0
 )
