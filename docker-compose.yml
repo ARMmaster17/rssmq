@@ -35,7 +35,7 @@ services:
     ports:
       - 8081:8080
   prometheus:
-    image: prom/prometheus:v2.30.3
+    image: prom/prometheus:v2.31.0
     ports:
       - 9000:9090
     volumes:
