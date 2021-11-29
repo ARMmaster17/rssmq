@@ -12,7 +12,7 @@ COPY ./ /src/
 WORKDIR /src
 RUN go build ./cmd/main.go
 
-FROM alpine:3.14.2 as final-stage
+FROM alpine:3.15.0 as final-stage
 RUN mkdir /app
 WORKDIR /app
 COPY --from=go-build-stage /src/main /app/main
