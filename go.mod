@@ -11,6 +11,6 @@ require (
 	github.com/rs/zerolog v1.26.0
 	github.com/streadway/amqp v1.0.0
 	github.com/stretchr/testify v1.7.0 // indirect
-	gorm.io/driver/postgres v1.2.1
+	gorm.io/driver/postgres v1.2.3
 	gorm.io/gorm v1.22.4
 )
