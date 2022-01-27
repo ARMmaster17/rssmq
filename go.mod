@@ -3,7 +3,7 @@ module rssmq
 go 1.16
 
 require (
-	github.com/go-co-op/gocron v1.10.0
+	github.com/go-co-op/gocron v1.11.0
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/mmcdole/gofeed v1.1.3
