@@ -1,47 +1,6 @@
 version: '3.3'
 services:
-  postgres:
-    image: 'postgres:latest'
-    restart: always
-    environment:
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: rssmq
-    ports:
-      - 5432:5432
-  rabbitmq:
-    image: rabbitmq:3-management-alpine
-    container_name: 'rabbitmq'
-    ports:
-      - 5672:5672
-      - 15672:15672
   rssmq:
     build: .
-    environment:
-      RSSMQ_DB_USER: "postgres"
-      RSSMQ_DB_PASSWORD: "password"
-      RSSMQ_DB_HOST: "postgres"
-      RSSMQ_DB_DATABASE: "rssmq"
-      RSSMQ_MQ_URL: "amqp://guest:guest@rabbitmq:5672"
-      RSSMQ_MQ_QUEUE: "rssmq"
-    depends_on:
-      - postgres
-      - rabbitmq
-    restart: always
-    ports:
-      - 8080:8080
-  adminer:
-    image: adminer:latest
-    restart: always
-    ports:
-      - 8081:8080
-  prometheus:
-    image: prom/prometheus:v2.32.1
-    ports:
-      - 9000:9090
-    volumes:
-      - ./prometheus:/etc/prometheus
-      - prometheus-data:/prometheus
-    command: --web.enable-lifecycle  --config.file=/etc/prometheus/prometheus.yml
-
-volumes:
-  prometheus-data:
+    image: rssmq
+    restart: unless-stopped
