@@ -12,7 +12,7 @@ func Run() {
 	s := gocron.NewScheduler(time.UTC)
 	lastCheckedTime := time.Now()
 	fp := gofeed.NewParser()
-	s.Every(1).Hours().Do(func() {
+	s.Every(viper.GetInt("checkIntervalHours")).Hours().Do(func() {
 		for _, feed := range viper.GetStringSlice("feeds") {
 			go func(feed string, lct time.Time) {
 				fmt.Println("Fetching feed: " + feed)
@@ -25,7 +25,6 @@ func Run() {
 					if item.PublishedParsed.After(lct) {
 						fmt.Println("New item found: " + item.Title)
 					}
-
 				}
 			}(feed, lastCheckedTime)
 		}

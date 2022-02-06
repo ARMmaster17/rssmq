@@ -3,5 +3,6 @@
     "http://www.reddit.com/.rss",
     "https://xkcd.com/rss.xml",
     "http://www.theonion.com/feeds/rss"
-  ]
+  ],
+  "recheckIntervalHours": 1
 }
