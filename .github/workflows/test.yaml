@@ -23,5 +23,5 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action@v1
         if: always()
         with:
-          files: ./junit/*-report.xml
+          files: ./go-report.xml
           report_individual_runs: "true"
