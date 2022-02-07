@@ -6,4 +6,4 @@ RUN go build -o rssmq ./main.go
 
 FROM alpine:3.15.0 as final-stage
 COPY --from=go-build-stage /src/rssmq /rssmq
-CMD /rssmq
+CMD /rssmq --config /opt/rssmq.json
