@@ -4,3 +4,5 @@ services:
     build: .
     image: rssmq
     restart: unless-stopped
+    volumes:
+      - ./rssmq.json:/opt/rssmq.json
