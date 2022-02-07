@@ -22,7 +22,9 @@ func Run() {
 					return
 				}
 				for _, item := range feedsData.Items {
-					if item.PublishedParsed.After(lct) {
+					if item.UpdatedParsed != nil && item.UpdatedParsed.After(lct) {
+						fmt.Println("New item found: " + item.Title)
+					} else if item.PublishedParsed != nil && item.PublishedParsed.After(lct) {
 						fmt.Println("New item found: " + item.Title)
 					}
 				}
