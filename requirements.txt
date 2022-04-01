@@ -1,0 +1,2 @@
+git+https://github.com/ARMmaster17/watergrid-python.git@main
+feedparser==6.0.8

@@ -1,0 +1,16 @@
+<?xml version="1.0" ?>
+<rss version="2.0">
+  <channel>
+    <title>Example Feed</title>
+    <link>http://example.org/</link>
+    <description>A demonstration of a feed.</description>
+    <language>en</language>
+      <item>
+        <title>Item 1</title>
+        <link>http://example.org/item1</link>
+        <description>This is an example item.</description>
+        <pubDate>Mon, 02 Jan 2010 11:00:00 +0000</pubDate>
+        <guid>http://example.org/item1</guid>
+      </item>
+  </channel>
+</rss>
