@@ -1,3 +1,6 @@
-FROM python:3.10-alpine3.15
-COPY . /rssmq
-CMD /rssmq --config /opt/rssmq.json
+FROM python:3.10-slim as builder
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+COPY . .
+CMD ["python", "main.py"]
