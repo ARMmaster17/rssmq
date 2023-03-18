@@ -1,4 +1,4 @@
-FROM golang:1.17-alpine as go-build-stage
+FROM golang:1.20-alpine as go-build-stage
 RUN mkdir /src
 COPY ./ /src/
 WORKDIR /src
